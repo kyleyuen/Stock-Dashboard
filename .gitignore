@@ -1,0 +1,11 @@
+# Python
+backend/venv/
+
+# Node
+stock-dashboard/node_modules/
+
+# OS
+.DS_Store
+
+# React build
+stock-dashboard/build/
