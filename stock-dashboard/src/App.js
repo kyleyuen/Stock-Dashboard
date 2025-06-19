@@ -1,3 +1,6 @@
+//Description: A simple stock dashboard application built with React, allowing users to search for stock data, view trends, and manage a watchlist with dark mode support.
+
+//Import necessary libraries and components
 import './App.css';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -14,6 +17,7 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
+//Main App component and setting defult states and symbols 
 function App() {
   const [symbol, setSymbol] = useState('');
   const [stockData, setStockData] = useState(null);
@@ -22,59 +26,65 @@ function App() {
   const [watchlist, setWatchlist] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
 
+  // Load watchlist from localStorage on initial render through your local JSON file 
   useEffect(() => {
     const storedWatchlist = JSON.parse(localStorage.getItem('watchlist')) || [];
     setWatchlist(storedWatchlist);
   }, []);
 
+  //function to handle the serach for stock data 
   const handleSearch = async (input = symbol) => {
     const inputSymbol = (typeof input === 'string' ? input : '').trim();
-    if (!inputSymbol) {
+    if (!inputSymbol) { //If input is empty, set error message
       setError('Please enter a stock symbol.');
       return;
     }
     setLoading(true);
-    try {
-      const res = await axios.get(`http://localhost:8000/stock/${inputSymbol}`);
-      setStockData(res.data);
+    try { //Fetches stock data from the API
+      const res = await axios.get(`http://localhost:8000/stock/${inputSymbol}`); //Once data is fetched, it sets the stockData state with the response data
+      setStockData(res.data); 
       setSymbol(inputSymbol);
       setError(null);
     } catch (err) {
       setStockData(null);
-      setError('Could not fetch data. Please check the symbol.');
+      setError('Could not fetch data. Please check the symbol.'); //if stockData is not found, set error message
     } finally {
-      setLoading(false);
+      setLoading(false); //set Loading state to false after fetching data
     }
   };
 
+  //function to add stock symbol to watchlist
   const addToWatchlist = () => {
-    if (!symbol || typeof symbol !== 'string' || watchlist.includes(symbol.toUpperCase())) return;
-    const updated = [...watchlist, symbol.toUpperCase()];
+    if (!symbol || typeof symbol !== 'string' || watchlist.includes(symbol.toUpperCase())) return; //If symbol is empty or already exists in watchlist, do nothing
+    const updated = [...watchlist, symbol.toUpperCase()]; //else update the watchlist with the new symbol
     setWatchlist(updated);
-    localStorage.setItem('watchlist', JSON.stringify(updated));
+    localStorage.setItem('watchlist', JSON.stringify(updated)); //store it in the JSON file afterwards 
   };
 
+  //function to remove stock symbol from watchlist
   const removeFromWatchlist = (item) => {
-    const updated = watchlist.filter(stock => stock !== item);
-    setWatchlist(updated);
-    localStorage.setItem('watchlist', JSON.stringify(updated));
+    const updated = watchlist.filter(stock => stock !== item); //Filter out the stock symbol that needs to be removed 
+    setWatchlist(updated); //Update watchlist state 
+    localStorage.setItem('watchlist', JSON.stringify(updated)); //update JSON file with the new watchlist
   };
 
-  const getChange = (days = 1) => {
+  //function to calculate the percentage change in stock price over a given number of days
+  const getChange = (days = 1) => { //Change the number of days to calculate the change
     const prices = stockData?.closing_prices || [];
     if (prices.length < days + 1) return 'N/A';
-    const change = ((prices.at(-1) - prices.at(-1 - days)) / prices.at(-1 - days)) * 100;
+    const change = ((prices.at(-1) - prices.at(-1 - days)) / prices.at(-1 - days)) * 100; // Calculate the percentage change
     return change.toFixed(2);
   };
 
+  //Styles for the theme based on dark mode
   const themeStyles = {
-    backgroundColor: darkMode ? '#1f2937' : '#f0f2f5',
-    color: darkMode ? '#e5e7eb' : '#111827',
-    minHeight: '100vh'
+    backgroundColor: darkMode ? '#1f2937' : '#f0f2f5', // Background color changes based on dark mode
+    color: darkMode ? '#e5e7eb' : '#111827', // Text color changes based on dark mode
+    minHeight: '100vh' // Ensures the app takes full height
   };
 
   return (
-    <div className="App" style={{ display: 'flex', ...themeStyles }}>
+    <div className="App" style={{ display: 'flex', ...themeStyles }}> {/* Main container with flex layout and theme styles */}
       {/* Sidebar */}
       <div style={{ width: '220px', background: darkMode ? '#111827' : '#1f2937', color: 'white', padding: '1rem' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>📋 Watchlist</h2>
@@ -82,6 +92,8 @@ function App() {
           <p>No stocks saved.</p>
         ) : (
           <ul style={{ listStyle: 'none', padding: 0 }}>
+
+             {/* Each watchlist item with a clickable name and a button to remove it */}
             {watchlist.map((item) => (
               <li
                 key={item}
@@ -93,6 +105,8 @@ function App() {
             ))}
           </ul>
         )}
+
+        {/* Dark mode toggle button */}
         <button
           onClick={() => setDarkMode(!darkMode)}
           style={{ marginTop: '1rem', backgroundColor: '#4b5563', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer' }}
@@ -128,10 +142,12 @@ function App() {
             ⭐ Add to Watchlist
           </button>
         </div>
-
+        
+         {/* Loading and error messages */}
         {loading && <p style={{ textAlign: 'center' }}>Loading...</p>}
         {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-
+        
+        {/* Display stock data if available */}
         {stockData && (
           <>
             <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginBottom: '20px' }}>
@@ -152,6 +168,8 @@ function App() {
                 />
               </div>
 
+
+              {/* Latest stock data card */}
               <div className="card" style={{ background: darkMode ? '#374151' : 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: darkMode ? '#f9fafb' : '#111827' }}>
                 <h3>📅 Latest Data</h3>
                 <p><strong>Close:</strong> ${stockData.closing_prices?.at?.(-1)?.toFixed(2) || 'N/A'}</p>
@@ -164,7 +182,7 @@ function App() {
                 </div>
               </div>
             </div>
-
+            {/* Statistics grid for stock changes and sector performance */}
             <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div className="card" style={{ background: darkMode ? '#374151' : 'white', padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.05)', color: darkMode ? '#f9fafb' : '#111827' }}>
                 <h4>📉 {stockData.symbol ? stockData.symbol.toUpperCase() : ''} Change</h4>
