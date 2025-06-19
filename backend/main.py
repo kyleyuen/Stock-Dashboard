@@ -1,19 +1,36 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import yfinance as yf
 
-app = FastAPI() # Create an instance of FastAPI
+app = FastAPI()
 
-@app.get("/stock/{symbol}") #when a GET request is made to /stock/{symbol}, FastAPI automatically calls the function bellow 
-def get_stock_data(symbol: str): #Function to fetch the stock data and FastAPI automatically formats {symbol} as a string
+# Enable CORS (Cross-Origin Resource Sharing) so frontend can access backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for development
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    ticker = yf.Ticker(symbol) #Fetch the data using yfinance libary
-    df = ticker.history(period="30d") #Fetch the last 30 days of stock data 
+@app.get("/stock/{symbol}")
+def get_stock_data(symbol: str):
+    try:
+        ticker = yf.Ticker(symbol)
+        df = ticker.history(period="30d")
 
-    dates = df.index.strftime("%Y-%m-%d").tolist()#Convert the index into list of string in the format of YYYY-MM-DD
-    closes = df['Close'].tolist() #pulls the closing prices from the Data into the list 
+        # If no data is returned (invalid symbol or empty response)
+        if df.empty:
+            return {"error": "No data found for this symbol."}
 
-    return { #return a dictionary with all the stock data requested above 
-        "symbol": symbol.upper(),
-        "dates": dates,
-        "closing_prices": closes
-    }
+        dates = df.index.strftime("%Y-%m-%d").tolist()
+        closes = df["Close"].tolist()
+
+        return {
+            "symbol": symbol.upper(),
+            "dates": dates,
+            "closing_prices": closes
+        }
+
+    except Exception as e:
+        return {"error": f"An error occurred: {str(e)}"}
