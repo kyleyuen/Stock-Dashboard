@@ -59,4 +59,12 @@ source venv/bin/activate
 pip install fastapi uvicorn yfinance
 uvicorn main:app --reload
 ```
+### Photos of dashboard: 
+<img width="1000" alt="Screenshot 2025-06-19 at 4 15 24 PM" src="https://github.com/user-attachments/assets/3e4145ee-43e9-495d-8d8e-3c5c0e4541ad" />
+<img width="1000" alt="Screenshot 2025-06-19 at 4 15 51 PM" src="https://github.com/user-attachments/assets/a35edbc3-aea6-434f-9de3-befbb90dafbc" />
+<img width="1000" alt="Screenshot 2025-06-19 at 4 16 06 PM" src="https://github.com/user-attachments/assets/6a77bcad-e2bd-4234-a133-d31cdc24a7a4" />
+
+
+
+
 
